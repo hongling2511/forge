@@ -176,6 +176,20 @@ func (p *Printer) ProjectCreated(artifactID, version string) {
 	p.Printf("  java -jar %s-bootstrap/target/%s-bootstrap-%s.jar\n", artifactID, artifactID, version)
 }
 
+// GoProjectCreated prints the success message after Go project creation
+func (p *Printer) GoProjectCreated(artifactID, version, module string) {
+	p.Println("")
+	p.Success("Project created successfully!")
+	p.Println("")
+	p.Printf("   Version: %s\n", version)
+	p.Printf("   Module:  %s\n", module)
+	p.Println("")
+	p.Println("Next steps:")
+	p.Printf("   cd %s\n", artifactID)
+	p.Println("   go mod tidy")
+	p.Println("   make run")
+}
+
 // Global printer instance
 var defaultPrinter = NewPrinter()
 

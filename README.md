@@ -8,15 +8,17 @@ Engineering scaffold CLI for generating project templates.
 # Install
 ./install.sh
 
-# Create a new DDD project
-forge new -g com.example -a my-service
+# Create a new Go service project
+forge new -t go-service -a my-api -m github.com/example/my-api
+cd my-api
+make run
+curl http://localhost:8080/health
 
-# Build and run
+# Create a new Java DDD project
+forge new -g com.example -a my-service
 cd my-service
 mvn clean package
 java -jar my-service-bootstrap/target/my-service-bootstrap-1.0.0-SNAPSHOT.jar
-
-# Verify health check
 curl http://localhost:8080/actuator/health
 ```
 
@@ -45,19 +47,24 @@ Options:
   -t, --template <name>     Template to use (default: java-ddd)
   -g, --group-id <id>       Maven groupId (required for Java templates)
   -a, --artifact-id <id>    Project name (required)
-  -v, --version <version>   Project version (default: 1.0.0-SNAPSHOT)
+  -m, --module <path>       Go module path (required for Go templates)
+  -v, --version <version>   Project version (default: 1.0.0-SNAPSHOT / 0.1.0)
   -p, --package <name>      Java package name (default: groupId)
   -o, --output <dir>        Output directory (default: current directory)
+  --interactive             Enable interactive wizard mode
   -h, --help                Show help
 ```
 
 **Examples:**
 
 ```bash
-# Basic usage
+# Go service project
+forge new -t go-service -a my-api -m github.com/example/my-api
+
+# Java DDD project
 forge new -g com.example -a my-service
 
-# With all options
+# With all options (Java)
 forge new -t java-ddd \
   -g com.example \
   -a my-service \
@@ -65,8 +72,8 @@ forge new -t java-ddd \
   -p com.example.myservice \
   -o ./projects
 
-# CI/CD batch mode
-forge new -g com.example -a my-service && cd my-service && mvn package
+# Interactive wizard mode
+forge new --interactive
 ```
 
 ### `forge templates`
@@ -79,7 +86,10 @@ forge templates
 # Output:
 # Available templates:
 #
-#   java-ddd        Java DDD 多模块工程 (Spring Boot 3.x)
+# NAME        DESCRIPTION
+# ----------  --------------------------------------------------
+# go-service  Go microservice with clean architecture (Go 1.21+)
+# java-ddd    Java DDD 多模块工程 (Spring Boot 3.x)
 ```
 
 ### `forge --help`
@@ -92,13 +102,34 @@ Show version information.
 
 ## Available Templates
 
-| Template | Description |
-|----------|-------------|
-| `java-ddd` | Java DDD multi-module project (Spring Boot 3.x) |
+| Template | Description | Stack |
+|----------|-------------|-------|
+| `go-service` | Go microservice with clean architecture | Go 1.21+, Gin, Cobra, Viper |
+| `java-ddd` | Java DDD multi-module project | Java 17+, Spring Boot 3.x, Maven |
 
 ## Generated Project Structure
 
-When using `java-ddd` template:
+### go-service Template
+
+```
+my-api/
+├── cmd/my-api/              # Application entry point (Cobra CLI)
+├── internal/                # Private application code
+│   ├── my-api/              # Main application
+│   │   ├── config/          # Viper configuration
+│   │   ├── handler/         # Gin HTTP handlers
+│   │   ├── middleware/      # Gin middleware
+│   │   ├── service/         # Business logic
+│   │   └── store/           # Data access
+│   └── pkg/                 # Internal shared packages
+├── pkg/                     # Public packages
+├── configs/                 # Configuration files
+├── build/                   # Dockerfile
+├── Makefile                 # Build automation
+└── README.md
+```
+
+### java-ddd Template
 
 ```
 my-service/
@@ -122,9 +153,12 @@ bootstrap → interface → application → domain
 
 ## Requirements
 
+### For Go Templates
+- **Go 1.21+**: `go version`
+
+### For Java Templates
 - **JDK 17+**: `java -version`
 - **Maven 3.6+**: `mvn -version`
-- **Bash**: For the CLI
 
 ## Version Tracking
 
@@ -154,22 +188,20 @@ mvn clean verify
 
 ```
 forge/
-├── cli/
-│   ├── forge                 # Main CLI entry point
-│   ├── commands/
-│   │   ├── new.sh            # forge new command
-│   │   └── templates.sh      # forge templates command
-│   └── lib/
-│       ├── args.sh           # Argument parsing
-│       └── validation.sh     # Parameter validation
+├── cmd/forge/               # CLI entry point
+├── internal/
+│   ├── cli/                 # Cobra commands
+│   ├── config/              # Configuration
+│   ├── generator/           # Template generators (Go + Maven)
+│   ├── interactive/         # Wizard mode
+│   ├── output/              # Colored output
+│   ├── template/            # Template discovery
+│   └── validation/          # Input validation
 ├── templates/
-│   └── java-ddd/             # Java DDD template
-│       ├── pom.xml
-│       ├── template.yaml
-│       └── src/main/resources/
+│   ├── go-service/          # Go microservice template
+│   └── java-ddd/            # Java DDD template
 ├── install.sh
-├── verify-reproducibility.sh
-└── pom.xml
+└── Makefile
 ```
 
 ## License

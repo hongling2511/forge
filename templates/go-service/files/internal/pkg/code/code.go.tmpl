@@ -1,0 +1,22 @@
+package code
+
+// Common error codes
+const (
+	OK          = 0
+	ErrUnknown  = 1
+	ErrInternal = 2
+)
+
+// Message returns error message for code
+func Message(code int) string {
+	switch code {
+	case OK:
+		return "success"
+	case ErrUnknown:
+		return "unknown error"
+	case ErrInternal:
+		return "internal error"
+	default:
+		return "unknown"
+	}
+}

@@ -1,0 +1,133 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
+
+	"{{.ModuleName}}/internal/{{.ProjectName}}/config"
+	"{{.ModuleName}}/internal/{{.ProjectName}}/handler"
+	"{{.ModuleName}}/internal/{{.ProjectName}}/middleware"
+	"{{.ModuleName}}/pkg/version"
+)
+
+var (
+	cfgFile string
+)
+
+// rootCmd represents the base command
+var rootCmd = &cobra.Command{
+	Use:   "{{.ProjectName}}",
+	Short: "{{.ProjectName}} is a microservice application",
+	Long: `{{.ProjectName}} is a microservice application built with Go and Gin.
+
+It provides a RESTful API server with health check endpoints
+and supports configuration via file, environment variables, and flags.`,
+	RunE: run,
+}
+
+// versionCmd represents the version command
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print the version information",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("{{.ProjectName}} %s\n", version.Version)
+		fmt.Printf("  Git Commit: %s\n", version.GitCommit)
+		fmt.Printf("  Build Time: %s\n", version.BuildTime)
+	},
+}
+
+func init() {
+	// Initialize config before running commands
+	cobra.OnInitialize(initConfig)
+
+	// Add persistent flags (available to all commands)
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default: ./configs/config.yaml)")
+
+	// Add local flags (only available to root command)
+	rootCmd.Flags().IntP("port", "p", 8080, "server port")
+	rootCmd.Flags().StringP("host", "H", "0.0.0.0", "server host")
+	rootCmd.Flags().String("log-level", "info", "log level (debug, info, warn, error)")
+	rootCmd.Flags().String("mode", "release", "gin mode (debug, release, test)")
+
+	// Bind flags to viper (use config.V for shared viper instance)
+	config.V.BindPFlag("server.port", rootCmd.Flags().Lookup("port"))
+	config.V.BindPFlag("server.host", rootCmd.Flags().Lookup("host"))
+	config.V.BindPFlag("log.level", rootCmd.Flags().Lookup("log-level"))
+	config.V.BindPFlag("server.mode", rootCmd.Flags().Lookup("mode"))
+
+	// Add subcommands
+	rootCmd.AddCommand(versionCmd)
+}
+
+// initConfig reads in config file and ENV variables if set
+func initConfig() {
+	if err := config.Init(cfgFile); err != nil {
+		log.Fatalf("Failed to initialize config: %v", err)
+	}
+}
+
+// run starts the HTTP server
+func run(cmd *cobra.Command, args []string) error {
+	cfg := config.Get()
+
+	// Set Gin mode
+	gin.SetMode(cfg.Server.Mode)
+
+	// Create Gin engine
+	r := gin.New()
+
+	// Add middleware
+	r.Use(gin.Recovery())
+	r.Use(middleware.Logger())
+	r.Use(middleware.RequestID())
+
+	// Register routes
+	handler.RegisterRoutes(r)
+
+	// Create HTTP server
+	server := &http.Server{
+		Addr:         cfg.GetServerAddr(),
+		Handler:      r,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+	}
+
+	// Graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		log.Printf("Server starting on %s (mode: %s)", cfg.GetServerAddr(), cfg.Server.Mode)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
+
+	<-stop
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		return fmt.Errorf("server shutdown error: %w", err)
+	}
+
+	log.Println("Server stopped gracefully")
+	return nil
+}
+
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}

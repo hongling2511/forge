@@ -1,0 +1,50 @@
+# Template Metadata: go-service
+# Go Microservice with Clean Architecture
+
+name: go-service
+version: 1.0.0
+description: "Go microservice with clean architecture (Go 1.21+)"
+
+# Template type determines which generator to use
+type: go-template
+
+# Go-specific configuration
+goConfig:
+  minGoVersion: "1.21"
+  filesDir: "files"
+
+# Required parameters for this template
+parameters:
+  required:
+    - name: artifactId
+      description: Project name (e.g., my-service)
+      pattern: "^[a-z][a-z0-9-]*$"
+    - name: module
+      description: Go module path (e.g., github.com/example/my-service)
+      pattern: "^[a-z0-9][a-z0-9.-]*(/[a-z0-9][a-z0-9._-]*)*$"
+
+  optional:
+    - name: version
+      description: Project version
+      default: "0.1.0"
+
+# Generated project structure
+modules:
+  - name: cmd
+    description: Application entry points
+  - name: internal
+    description: Private application code
+  - name: pkg
+    description: Public packages (can be imported by external projects)
+  - name: configs
+    description: Configuration file templates
+  - name: build
+    description: CI/CD and Docker configuration
+
+# Technology stack
+stack:
+  language: go
+  goVersion: "1.21+"
+  framework: gin
+  frameworkVersion: "1.9.1"
+  buildTool: go

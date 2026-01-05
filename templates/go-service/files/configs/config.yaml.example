@@ -1,0 +1,7 @@
+# Application Configuration
+# Copy to config.yaml and modify as needed
+
+server:
+  port: ${PORT:-8080}
+
+# Add more configuration as needed

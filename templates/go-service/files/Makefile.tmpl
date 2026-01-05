@@ -1,0 +1,47 @@
+.PHONY: all build run test clean lint fmt help
+
+# Build variables
+BINARY_NAME := {{.ProjectName}}
+VERSION := {{.Version}}
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+LDFLAGS := -ldflags "-X {{.ModuleName}}/pkg/version.Version=$(VERSION) \
+	-X {{.ModuleName}}/pkg/version.GitCommit=$(GIT_COMMIT) \
+	-X {{.ModuleName}}/pkg/version.BuildTime=$(BUILD_TIME)"
+
+all: fmt lint test build
+
+build:
+	@echo "Building..."
+	go build $(LDFLAGS) -o bin/$(BINARY_NAME) ./cmd/$(BINARY_NAME)
+
+run:
+	go run ./cmd/$(BINARY_NAME)
+
+test:
+	go test -v -race -cover ./...
+
+clean:
+	rm -rf bin/
+	go clean
+
+lint:
+	@if command -v golangci-lint > /dev/null; then \
+		golangci-lint run ./...; \
+	else \
+		echo "golangci-lint not installed, skipping"; \
+	fi
+
+fmt:
+	go fmt ./...
+	@echo "Code formatted"
+
+help:
+	@echo "Available targets:"
+	@echo "  all    - Format, lint, test, and build"
+	@echo "  build  - Build the binary"
+	@echo "  run    - Run the application"
+	@echo "  test   - Run tests"
+	@echo "  clean  - Clean build artifacts"
+	@echo "  lint   - Run linter"
+	@echo "  fmt    - Format code"

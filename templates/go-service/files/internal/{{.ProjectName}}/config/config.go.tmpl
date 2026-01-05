@@ -1,0 +1,100 @@
+package config
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/spf13/viper"
+)
+
+// Config holds application configuration
+type Config struct {
+	Server ServerConfig `mapstructure:"server"`
+	Log    LogConfig    `mapstructure:"log"`
+}
+
+// ServerConfig holds server configuration
+type ServerConfig struct {
+	Port         int           `mapstructure:"port"`
+	Host         string        `mapstructure:"host"`
+	Mode         string        `mapstructure:"mode"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+}
+
+// LogConfig holds logging configuration
+type LogConfig struct {
+	Level  string `mapstructure:"level"`
+	Format string `mapstructure:"format"`
+}
+
+// Global config instance
+var cfg *Config
+
+// V is the global viper instance used for flag binding
+var V = viper.New()
+
+func init() {
+	// Set defaults
+	V.SetDefault("server.port", 8080)
+	V.SetDefault("server.host", "0.0.0.0")
+	V.SetDefault("server.mode", "release")
+	V.SetDefault("server.read_timeout", 30)
+	V.SetDefault("server.write_timeout", 30)
+	V.SetDefault("log.level", "info")
+	V.SetDefault("log.format", "json")
+}
+
+// Init initializes configuration from file, environment, and flags
+func Init(cfgFile string) error {
+	// Read config file
+	if cfgFile != "" {
+		V.SetConfigFile(cfgFile)
+	} else {
+		V.SetConfigName("config")
+		V.SetConfigType("yaml")
+		V.AddConfigPath("./configs")
+		V.AddConfigPath(".")
+		V.AddConfigPath("$HOME/.{{.ProjectName}}")
+		V.AddConfigPath("/etc/{{.ProjectName}}")
+	}
+
+	// Read environment variables
+	// Example: {{.ProjectName | envPrefix}}_SERVER_PORT=9090
+	V.SetEnvPrefix("{{.ProjectName | envPrefix}}")
+	V.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	V.AutomaticEnv()
+
+	// Read config file (ignore error if not found)
+	if err := V.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return fmt.Errorf("failed to read config file: %w", err)
+		}
+	}
+
+	// Unmarshal to config struct
+	cfg = &Config{}
+	if err := V.Unmarshal(cfg); err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	// Convert timeout seconds to duration
+	cfg.Server.ReadTimeout = cfg.Server.ReadTimeout * time.Second
+	cfg.Server.WriteTimeout = cfg.Server.WriteTimeout * time.Second
+
+	return nil
+}
+
+// Get returns the global configuration
+func Get() *Config {
+	if cfg == nil {
+		panic("config not initialized, call Init() first")
+	}
+	return cfg
+}
+
+// GetServerAddr returns the server address in host:port format
+func (c *Config) GetServerAddr() string {
+	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
