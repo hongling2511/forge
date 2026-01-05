@@ -1,0 +1,268 @@
+# Archetype Contract: Maven DDD 多模块工程脚手架
+#
+# 本文件定义脚手架生成结果的契约测试规范。
+# 任何生成的工程必须满足以下契约才视为合法产物。
+#
+# Version: 1.0.0
+# Date: 2026-01-05
+
+contract:
+  name: ddd-archetype-contract
+  version: "1.0.0"
+  description: "Maven DDD 多模块工程脚手架生成结果契约"
+
+# =============================================================================
+# 输入参数契约
+# =============================================================================
+input:
+  required:
+    - name: groupId
+      pattern: "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+      example: "com.example"
+      error: "groupId 必须是合法的 Maven groupId，例如: com.example"
+
+    - name: artifactId
+      pattern: "^[a-z][a-z0-9-]*$"
+      example: "my-project"
+      error: "artifactId 必须是合法的 Maven artifactId，例如: my-project"
+
+  optional:
+    - name: version
+      default: "1.0.0-SNAPSHOT"
+      pattern: "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9]+)?$"
+      example: "1.0.0-SNAPSHOT"
+
+    - name: package
+      default: "${groupId}"
+      pattern: "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+      example: "com.example.myproject"
+
+# =============================================================================
+# 目录结构契约
+# =============================================================================
+structure:
+  root:
+    - path: "pom.xml"
+      type: file
+      required: true
+      description: "父 POM 文件"
+
+    - path: "${artifactId}-domain/"
+      type: directory
+      required: true
+      description: "领域层模块"
+
+    - path: "${artifactId}-application/"
+      type: directory
+      required: true
+      description: "应用层模块"
+
+    - path: "${artifactId}-infrastructure/"
+      type: directory
+      required: true
+      description: "基础设施层模块"
+
+    - path: "${artifactId}-interface/"
+      type: directory
+      required: true
+      description: "接口层模块"
+
+    - path: "${artifactId}-bootstrap/"
+      type: directory
+      required: true
+      description: "启动模块"
+
+  modules:
+    domain:
+      - path: "pom.xml"
+        type: file
+        required: true
+      - path: "src/main/java/${packagePath}/domain/"
+        type: directory
+        required: true
+
+    application:
+      - path: "pom.xml"
+        type: file
+        required: true
+      - path: "src/main/java/${packagePath}/application/"
+        type: directory
+        required: true
+
+    infrastructure:
+      - path: "pom.xml"
+        type: file
+        required: true
+      - path: "src/main/java/${packagePath}/infrastructure/"
+        type: directory
+        required: true
+
+    interface:
+      - path: "pom.xml"
+        type: file
+        required: true
+      - path: "src/main/java/${packagePath}/interfaces/"
+        type: directory
+        required: true
+
+    bootstrap:
+      - path: "pom.xml"
+        type: file
+        required: true
+      - path: "src/main/java/${packagePath}/Application.java"
+        type: file
+        required: true
+        description: "启动类"
+      - path: "src/main/resources/application.yml"
+        type: file
+        required: true
+        description: "配置文件"
+
+# =============================================================================
+# 配置文件契约
+# =============================================================================
+configurations:
+  parent_pom:
+    path: "pom.xml"
+    required_elements:
+      - xpath: "/project/groupId"
+        value: "${groupId}"
+      - xpath: "/project/artifactId"
+        value: "${artifactId}"
+      - xpath: "/project/version"
+        value: "${version}"
+      - xpath: "/project/packaging"
+        value: "pom"
+      - xpath: "/project/modules/module"
+        count: 5
+      - xpath: "/project/properties/forge.archetype.version"
+        exists: true
+        description: "Archetype 版本追溯"
+      - xpath: "/project/properties/forge.template.version"
+        exists: true
+        description: "模板版本追溯"
+
+  bootstrap_config:
+    path: "${artifactId}-bootstrap/src/main/resources/application.yml"
+    required_keys:
+      - key: "server.port"
+        default: 8080
+      - key: "management.endpoints.web.exposure.include"
+        value: "health"
+
+# =============================================================================
+# 依赖关系契约
+# =============================================================================
+dependencies:
+  domain:
+    internal: []
+    description: "领域层无内部依赖"
+
+  application:
+    internal:
+      - "${artifactId}-domain"
+    description: "应用层依赖领域层"
+
+  infrastructure:
+    internal:
+      - "${artifactId}-domain"
+      - "${artifactId}-application"
+    description: "基础设施层依赖领域层和应用层"
+
+  interface:
+    internal:
+      - "${artifactId}-application"
+    description: "接口层依赖应用层"
+
+  bootstrap:
+    internal:
+      - "${artifactId}-domain"
+      - "${artifactId}-application"
+      - "${artifactId}-infrastructure"
+      - "${artifactId}-interface"
+    description: "启动模块依赖全部模块"
+
+# =============================================================================
+# 可执行性契约
+# =============================================================================
+executability:
+  build:
+    command: "mvn clean package -DskipTests"
+    expected_exit_code: 0
+    timeout_seconds: 120
+    description: "工程必须可以成功构建"
+
+  test:
+    command: "mvn test"
+    expected_exit_code: 0
+    timeout_seconds: 180
+    description: "工程必须可以成功运行测试"
+
+  run:
+    command: "java -jar ${artifactId}-bootstrap/target/${artifactId}-bootstrap-${version}.jar"
+    expected_exit_code: 0
+    startup_timeout_seconds: 30
+    description: "工程必须可以成功启动"
+
+  health_check:
+    endpoint: "http://localhost:8080/actuator/health"
+    method: GET
+    expected_status: 200
+    expected_body_contains: '"status"'
+    timeout_seconds: 5
+    description: "健康检查端点必须可用"
+
+# =============================================================================
+# 契约测试验证脚本
+# =============================================================================
+verification:
+  script: |
+    #!/bin/bash
+    set -e
+
+    echo "=== Contract Verification ==="
+
+    # 1. 验证目录结构
+    echo "[1/4] Checking directory structure..."
+    for dir in domain application infrastructure interface bootstrap; do
+      if [ ! -d "${artifactId}-${dir}" ]; then
+        echo "ERROR: Missing module directory: ${artifactId}-${dir}"
+        exit 1
+      fi
+    done
+    echo "✓ Directory structure OK"
+
+    # 2. 验证 POM 文件
+    echo "[2/4] Checking POM files..."
+    for dir in . domain application infrastructure interface bootstrap; do
+      pom_path="${dir}/pom.xml"
+      [ "$dir" = "." ] || pom_path="${artifactId}-${dir}/pom.xml"
+      if [ ! -f "$pom_path" ]; then
+        echo "ERROR: Missing POM file: $pom_path"
+        exit 1
+      fi
+    done
+    echo "✓ POM files OK"
+
+    # 3. 验证构建
+    echo "[3/4] Verifying build..."
+    mvn clean package -DskipTests -q
+    echo "✓ Build OK"
+
+    # 4. 验证启动和健康检查
+    echo "[4/4] Verifying startup and health check..."
+    java -jar ${artifactId}-bootstrap/target/${artifactId}-bootstrap-*.jar &
+    PID=$!
+    sleep 10
+
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
+    kill $PID 2>/dev/null || true
+
+    if [ "$HTTP_CODE" != "200" ]; then
+      echo "ERROR: Health check failed with HTTP $HTTP_CODE"
+      exit 1
+    fi
+    echo "✓ Health check OK"
+
+    echo ""
+    echo "=== All Contract Checks Passed ==="

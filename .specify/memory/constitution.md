@@ -1,50 +1,250 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+================================================================================
+SYNC IMPACT REPORT
+================================================================================
+Version Change: N/A (initial) → v0.1.0
+Bump Rationale: Initial constitution adoption for engineering scaffold system
 
-## Core Principles
+Added Sections:
+- Article 1: Scaffold is Product (脚手架是产品，而不是脚本)
+- Article 2: Minimal Defaults (默认最小化，复杂度显式开启)
+- Article 3: No Framework Invention (不发明框架，不制造抽象)
+- Article 4: Generated Results as Contracts (生成结果即契约)
+- Article 5: CLI-First (CLI 优先，自动化优先)
+- Article 6: Deterministic Reproducibility (生成结果必须确定性可复现)
+- Article 7: Spec-Driven Evolution (规格驱动演进)
+- Article 8: Capability Isolation (能力隔离，特性解耦)
+- Article 9: Template Versioning (模板必须版本化)
+- Article 10: Fail Early (尽早失败，明确失败)
+- Article 11: No Implicit Global State (禁止隐式全局状态)
+- Article 12: Amendment Process (宪法修订流程)
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+Templates Status:
+- .specify/templates/plan-template.md: ✅ Compatible (Constitution Check section exists)
+- .specify/templates/spec-template.md: ✅ Compatible (spec-driven approach aligns)
+- .specify/templates/tasks-template.md: ✅ Compatible (contract tests mentioned)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Deferred Items: None
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+Generated: 2026-01-05
+================================================================================
+-->
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+# 工程脚手架宪法（Constitution）
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+**版本**: v0.1.0
+**状态**: 生效中
+**适用范围**: 本宪法适用于工程脚手架系统的所有规格、实现计划、任务拆分、模板以及生成的工程产物。
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+---
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## 第一条 —— 脚手架是产品，而不是脚本
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+工程脚手架必须被视为一等产品。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- 所有功能变化 **必须** 由规格驱动
+- 所有行为 **必须** 可验证、可测试
+- **禁止** 临时脚本、隐藏参数、未文档化行为
+
+**立法理由**:
+脚手架决定工程师如何开始一个系统。如果不把它当成产品，它一定会退化成不可维护的模板垃圾场。
+
+---
+
+## 第二条 —— 默认最小化，复杂度显式开启
+
+脚手架生成的默认工程必须是最小可运行系统。
+
+**默认生成结果必须**:
+- 可以成功构建
+- 可以成功启动
+- 至少包含一条可验证执行路径（例如健康检查）
+
+**任何额外能力必须**:
+- 通过显式参数或配置开启
+- 不得隐式注入
+
+**明确禁止**:
+- 隐藏特性
+- 隐式依赖
+- "以后可能用得到"的预埋设计
+
+**立法理由**:
+复杂度只能被选择，不能被默认继承。
+
+---
+
+## 第三条 —— 不发明框架，不制造抽象
+
+脚手架 **不得** 发明新的框架、分层模式或领域抽象。
+
+- 生成的工程必须直接使用生态中的主流工具和约定
+- **禁止** 私有封装层、统一适配层、元框架
+- 生成结果应当让熟悉该技术栈的工程师"看得懂、接得住"
+
+**立法理由**:
+脚手架的职责是加速工程，而不是推广私有架构。
+
+---
+
+## 第四条 —— 生成结果即契约
+
+脚手架生成的每一种工程结构，都是一份明确契约。
+
+**每个模板或变体必须**:
+- 提供契约测试（Contract Tests），验证：
+  - 目录结构
+  - 关键配置文件
+  - 必要命令是否存在
+- 提供可复现的验证方式（CLI 命令或脚本）
+
+只要生成工程通过契约测试，即视为合法产物。
+
+**立法理由**:
+没有契约的模板，迟早会悄然腐烂。
+
+---
+
+## 第五条 —— CLI 优先，自动化优先
+
+脚手架的所有能力 **必须** 通过单一 CLI 入口暴露。
+
+**CLI 必须**:
+- 可脚本化
+- 输出确定
+- 支持非交互执行
+
+交互式提示可以存在，但必须有等价的命令行参数。
+
+**立法理由**:
+无法自动化的工具，无法规模化使用。
+
+---
+
+## 第六条 —— 生成结果必须确定性可复现
+
+在以下条件一致时：
+- 脚手架版本
+- 输入参数
+- 模板版本
+
+生成结果 **必须** 完全一致。
+
+- **禁止** 不可控随机行为
+- **禁止** 依赖机器本地隐含状态
+
+**立法理由**:
+工程基础设施必须是可重复的。
+
+---
+
+## 第七条 —— 规格驱动演进
+
+脚手架的任何演进 **必须** 起源于规格。
+
+**新能力**:
+- 必须有 Feature 规格
+- 必须有验收标准
+
+**Bug 修复**:
+- 必须反映为规格澄清或修正
+- 必须补充或修正契约测试
+
+**立法理由**:
+规格是事实，代码只是结果。
+
+---
+
+## 第八条 —— 能力隔离，特性解耦
+
+脚手架的每一项能力 **必须** 作为独立 Feature 演进。
+
+**每个 Feature**:
+- 有独立规格
+- 有独立计划与任务
+
+跨 Feature 依赖 **必须** 显式说明。
+
+**立法理由**:
+脚手架是横向生长的系统，纠缠即失控。
+
+---
+
+## 第九条 —— 模板必须版本化
+
+模板是版本化资产，而不是可随意修改的文本。
+
+- 破坏性变更必须提升版本号
+- 每个生成工程必须记录：
+  - 脚手架版本
+  - 模板版本
+
+是否兼容旧版本是策略问题，但可追溯性是强制要求。
+
+**立法理由**:
+工程必须能回答"我是如何被生成的"。
+
+---
+
+## 第十条 —— 尽早失败，明确失败
+
+当输入非法或组合不被支持时，脚手架 **必须** 立即失败。
+
+- **禁止** 静默降级
+- 错误信息必须：
+  - 清楚说明失败原因
+  - 指出解决方式
+
+**立法理由**:
+"半对半错"的脚手架比直接失败更危险。
+
+---
+
+## 第十一条 —— 禁止隐式全局状态
+
+脚手架 **不得** 依赖隐式全局状态。
+
+- 使用的环境变量必须文档化
+- 默认值必须可见
+- 生成结果必须自包含
+
+**立法理由**:
+隐藏状态是调试和信任的敌人。
+
+---
+
+## 第十二条 —— 宪法修订流程
+
+本宪法仅可通过以下流程修订：
+
+1. 明确提出修订提案
+2. 明确说明修订理由
+3. 评估对既有生成结果的影响
+
+所有修订 **必须** 版本化记录。
+
+**立法理由**:
+规则可以进化，但不能悄然改变。
+
+---
+
+## 结语原则
+
+脚手架的目标不是"更快生成代码"，
+而是让"正确、克制、一致的工程方式"成为默认行为。
+
+---
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+**Amendment Procedure**: 按第十二条执行修订流程
+**Versioning Policy**: 语义化版本（MAJOR.MINOR.PATCH）
+- MAJOR: 删除或重新定义原则
+- MINOR: 新增原则或实质性扩展指导
+- PATCH: 澄清、措辞修正、非语义变更
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Compliance Review**: 所有 spec、plan、task 必须在 Constitution Check 环节验证合规性
+
+---
+
+**Version**: v0.1.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-01-05

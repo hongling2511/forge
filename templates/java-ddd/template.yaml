@@ -1,0 +1,54 @@
+# Template Metadata: java-ddd
+# Java DDD Multi-Module Spring Boot Archetype
+
+name: java-ddd
+version: 1.0.0
+description: "Java DDD 多模块工程 (Spring Boot 3.x)"
+
+# Template type determines which parameters are required
+type: maven-archetype
+
+# Archetype coordinates for Maven
+archetype:
+  groupId: com.forge.templates
+  artifactId: java-ddd-archetype
+  version: 1.0.0-SNAPSHOT
+
+# Required parameters for this template
+parameters:
+  required:
+    - name: groupId
+      description: Maven groupId (e.g., com.example)
+      pattern: "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+    - name: artifactId
+      description: Project name (e.g., my-service)
+      pattern: "^[a-z][a-z0-9-]*$"
+
+  optional:
+    - name: version
+      description: Project version
+      default: "1.0.0-SNAPSHOT"
+    - name: package
+      description: Java package name (defaults to groupId)
+      default: "${groupId}"
+
+# Generated project structure
+modules:
+  - name: domain
+    description: Domain layer - entities, value objects, domain services
+  - name: application
+    description: Application layer - use cases, application services
+  - name: infrastructure
+    description: Infrastructure layer - repositories, external integrations
+  - name: interface
+    description: Interface layer - REST controllers, DTOs
+  - name: bootstrap
+    description: Bootstrap module - application entry point, configuration
+
+# Technology stack
+stack:
+  language: java
+  jdk: "17+"
+  framework: spring-boot
+  frameworkVersion: "3.2.x"
+  buildTool: maven
