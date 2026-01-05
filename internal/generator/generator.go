@@ -10,10 +10,10 @@ import (
 
 // Generator orchestrates project generation
 type Generator struct {
-	template  *template.Template
-	config    *Config
-	printer   *output.Printer
-	quiet     bool
+	template *template.Template
+	config   *Config
+	printer  *output.Printer
+	quiet    bool
 }
 
 // Config holds generation configuration
@@ -22,6 +22,7 @@ type Config struct {
 	ArtifactID string
 	Version    string
 	Package    string
+	Module     string // Go module path (for Go templates)
 	OutputDir  string
 }
 
@@ -43,6 +44,53 @@ func (g *Generator) SetQuiet(quiet bool) {
 
 // Generate creates a new project from the template
 func (g *Generator) Generate(ctx context.Context) error {
+	// Route to appropriate executor based on template type
+	if g.template.IsGoTemplate() {
+		return g.generateGo(ctx)
+	}
+	return g.generateMaven(ctx)
+}
+
+// generateGo handles Go template generation
+func (g *Generator) generateGo(ctx context.Context) error {
+	// Create Go executor
+	executor := NewGoExecutor(g.template.Path, g.template.GoConfig.FilesDir)
+	executor.SetQuiet(g.quiet)
+
+	// Validate Go toolchain
+	if err := executor.Validate(ctx); err != nil {
+		g.printer.Errorf("Go toolchain not found")
+		g.printer.Println("")
+		g.printer.Println("Please install Go 1.21 or later")
+		g.printer.Println("Visit: https://go.dev/dl/")
+		return err
+	}
+
+	g.printer.Printf("Creating project '%s' from template '%s'...\n", g.config.ArtifactID, g.template.Name)
+	g.printer.Println("")
+	g.printer.Println("Initializing Go module...")
+	g.printer.Println("Generating project structure...")
+
+	// Execute generation
+	params := &ExecuteParams{
+		OutputDir:  g.config.OutputDir,
+		ArtifactID: g.config.ArtifactID,
+		Version:    g.config.Version,
+		TemplateData: map[string]string{
+			"module": g.config.Module,
+		},
+	}
+
+	if err := executor.Execute(ctx, params); err != nil {
+		return fmt.Errorf("failed to generate project: %w", err)
+	}
+
+	g.printer.GoProjectCreated(g.config.ArtifactID, g.config.Version, g.config.Module)
+	return nil
+}
+
+// generateMaven handles Maven archetype generation (existing behavior)
+func (g *Generator) generateMaven(ctx context.Context) error {
 	// Check Maven is available
 	if err := CheckMaven(); err != nil {
 		return err

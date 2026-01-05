@@ -2,7 +2,6 @@ package cli
 
 import (
 	"os"
-	"strings"
 
 	"github.com/hongling2511/forge/internal/generator"
 	"github.com/hongling2511/forge/internal/interactive"
@@ -18,6 +17,7 @@ type NewConfig struct {
 	Template    string
 	GroupID     string
 	ArtifactID  string
+	Module      string // Go module path (for Go templates)
 	Version     string
 	Package     string
 	OutputDir   string
@@ -31,12 +31,15 @@ var newCmd = &cobra.Command{
 	Short: "Create a new project from template",
 	Long: `Create a new project from a template.
 
-The new command generates a project using Maven archetypes. It supports
-both command-line and interactive modes.
+The new command generates a project using Maven archetypes or Go templates.
+It supports both command-line and interactive modes.
 
 Examples:
-  # Create a new DDD project
+  # Create a new Java DDD project
   forge new -g com.example -a my-service
+
+  # Create a new Go service project
+  forge new -t go-service -a my-api -m github.com/example/my-api
 
   # Create with all options
   forge new -t java-ddd -g com.example -a my-service -v 2.0.0 -p com.example.myservice
@@ -57,7 +60,8 @@ func init() {
 	newCmd.Flags().StringVarP(&newConfig.Template, "template", "t", "java-ddd", "Template to use")
 	newCmd.Flags().StringVarP(&newConfig.GroupID, "group-id", "g", "", "Maven groupId (required for Java templates)")
 	newCmd.Flags().StringVarP(&newConfig.ArtifactID, "artifact-id", "a", "", "Project name (required)")
-	newCmd.Flags().StringVarP(&newConfig.Version, "version", "v", "1.0.0-SNAPSHOT", "Project version")
+	newCmd.Flags().StringVarP(&newConfig.Module, "module", "m", "", "Go module path (required for Go templates)")
+	newCmd.Flags().StringVarP(&newConfig.Version, "version", "v", "", "Project version")
 	newCmd.Flags().StringVarP(&newConfig.Package, "package", "p", "", "Java package name (defaults to groupId)")
 	newCmd.Flags().StringVarP(&newConfig.OutputDir, "output", "o", ".", "Output directory")
 	newCmd.Flags().BoolVar(&newConfig.Interactive, "interactive", false, "Enable interactive mode (wizard)")
@@ -79,6 +83,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 			Template:   newConfig.Template,
 			GroupID:    newConfig.GroupID,
 			ArtifactID: newConfig.ArtifactID,
+			Module:     newConfig.Module,
 			Version:    newConfig.Version,
 			Package:    newConfig.Package,
 			OutputDir:  newConfig.OutputDir,
@@ -93,6 +98,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 		newConfig.Template = result.Template
 		newConfig.GroupID = result.GroupID
 		newConfig.ArtifactID = result.ArtifactID
+		newConfig.Module = result.Module
 		newConfig.Version = result.Version
 		newConfig.Package = result.Package
 		newConfig.OutputDir = result.OutputDir
@@ -113,15 +119,32 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Validate parameters
-	isJava := tmpl.IsJavaTemplate()
-	errors := validation.ValidateAll(
-		newConfig.ArtifactID,
-		newConfig.GroupID,
-		newConfig.Version,
-		newConfig.Package,
-		isJava,
-	)
+	// Set default version based on template type
+	if newConfig.Version == "" {
+		if tmpl.IsGoTemplate() {
+			newConfig.Version = "0.1.0"
+		} else {
+			newConfig.Version = "1.0.0-SNAPSHOT"
+		}
+	}
+
+	// Validate parameters based on template type
+	var errors []error
+	if tmpl.IsGoTemplate() {
+		errors = validation.ValidateAllGo(
+			newConfig.ArtifactID,
+			newConfig.Module,
+			newConfig.Version,
+		)
+	} else {
+		errors = validation.ValidateAll(
+			newConfig.ArtifactID,
+			newConfig.GroupID,
+			newConfig.Version,
+			newConfig.Package,
+			tmpl.IsJavaTemplate(),
+		)
+	}
 
 	if len(errors) > 0 {
 		printer.ValidationErrors(errors)
@@ -132,6 +155,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 	gen := generator.New(tmpl, &generator.Config{
 		GroupID:    newConfig.GroupID,
 		ArtifactID: newConfig.ArtifactID,
+		Module:     newConfig.Module,
 		Version:    newConfig.Version,
 		Package:    newConfig.Package,
 		OutputDir:  newConfig.OutputDir,
@@ -158,10 +182,14 @@ func shouldRunInteractive(cfg *NewConfig, registry *template.Registry) bool {
 		return true
 	}
 
-	// For Java templates, check if groupId is missing
-	if strings.HasPrefix(cfg.Template, "java") && cfg.GroupID == "" {
-		// Also check if template exists and is a Java template
-		if tmpl, err := registry.Get(cfg.Template); err == nil && tmpl.IsJavaTemplate() {
+	// Check template-specific requirements
+	if tmpl, err := registry.Get(cfg.Template); err == nil {
+		// For Java templates, check if groupId is missing
+		if tmpl.IsJavaTemplate() && cfg.GroupID == "" {
+			return true
+		}
+		// For Go templates, check if module is missing
+		if tmpl.IsGoTemplate() && cfg.Module == "" {
 			return true
 		}
 	}

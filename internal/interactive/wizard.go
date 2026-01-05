@@ -15,6 +15,7 @@ type WizardConfig struct {
 	Template   string
 	GroupID    string
 	ArtifactID string
+	Module     string // Go module path (for Go templates)
 	Version    string
 	Package    string
 	OutputDir  string
@@ -49,6 +50,9 @@ func (w *Wizard) SetDefaults(cfg WizardConfig) {
 	if cfg.ArtifactID != "" {
 		w.defaults.ArtifactID = cfg.ArtifactID
 	}
+	if cfg.Module != "" {
+		w.defaults.Module = cfg.Module
+	}
 	if cfg.Version != "" {
 		w.defaults.Version = cfg.Version
 	}
@@ -75,20 +79,32 @@ func (w *Wizard) Run() (*WizardConfig, error) {
 		return nil, err
 	}
 
+	// Update default version based on template type
+	if tmpl.IsGoTemplate() && w.defaults.Version == "1.0.0-SNAPSHOT" {
+		w.defaults.Version = "0.1.0"
+	}
+
 	// Step 2: Artifact ID (project name)
 	if err := w.promptArtifactID(result); err != nil {
 		return nil, err
 	}
 
-	// Step 3: Group ID (for Java templates)
+	// Step 3a: Group ID (for Java templates)
 	if tmpl.IsJavaTemplate() {
 		if err := w.promptGroupID(result); err != nil {
 			return nil, err
 		}
 	}
 
+	// Step 3b: Module path (for Go templates)
+	if tmpl.IsGoTemplate() {
+		if err := w.promptModule(result); err != nil {
+			return nil, err
+		}
+	}
+
 	// Step 4: Version
-	if err := w.promptVersion(result); err != nil {
+	if err := w.promptVersion(result, tmpl); err != nil {
 		return nil, err
 	}
 
@@ -184,11 +200,34 @@ func (w *Wizard) promptGroupID(result *WizardConfig) error {
 	return survey.AskOne(prompt, &result.GroupID, survey.WithValidator(validator))
 }
 
-func (w *Wizard) promptVersion(result *WizardConfig) error {
+func (w *Wizard) promptModule(result *WizardConfig) error {
+	prompt := &survey.Input{
+		Message: "Enter Go module path:",
+		Default: w.defaults.Module,
+		Help:    "Go module path (e.g., github.com/example/my-service)",
+	}
+
+	validator := func(val interface{}) error {
+		str, ok := val.(string)
+		if !ok {
+			return errors.New("invalid input")
+		}
+		return validation.ValidateGoModule(str)
+	}
+
+	return survey.AskOne(prompt, &result.Module, survey.WithValidator(validator))
+}
+
+func (w *Wizard) promptVersion(result *WizardConfig, tmpl *template.Template) error {
+	helpText := "SemVer format (e.g., 1.0.0-SNAPSHOT)"
+	if tmpl.IsGoTemplate() {
+		helpText = "SemVer format (e.g., 0.1.0)"
+	}
+
 	prompt := &survey.Input{
 		Message: "Enter version:",
 		Default: w.defaults.Version,
-		Help:    "SemVer format (e.g., 1.0.0-SNAPSHOT)",
+		Help:    helpText,
 	}
 
 	validator := func(val interface{}) error {
@@ -275,6 +314,9 @@ func (w *Wizard) promptConfirmation(result *WizardConfig, tmpl *template.Templat
 	fmt.Printf("  Project:     %s\n", result.ArtifactID)
 	if tmpl.IsJavaTemplate() {
 		fmt.Printf("  Group ID:    %s\n", result.GroupID)
+	}
+	if tmpl.IsGoTemplate() {
+		fmt.Printf("  Module:      %s\n", result.Module)
 	}
 	fmt.Printf("  Version:     %s\n", result.Version)
 	if tmpl.IsJavaTemplate() {

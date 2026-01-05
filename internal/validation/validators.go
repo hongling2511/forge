@@ -18,6 +18,11 @@ var (
 
 	// PackagePattern: same as GroupIDPattern
 	PackagePattern = regexp.MustCompile(`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*$`)
+
+	// GoModulePattern validates Go module paths
+	// Valid: github.com/user/project, example.com/pkg/v2, my-project
+	// Invalid: My-Project, /invalid/path
+	GoModulePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9.-]*(/[a-z0-9][a-z0-9._-]*)*$`)
 )
 
 // ValidationError represents a validation error with context
@@ -106,6 +111,27 @@ func ValidatePackage(value string) error {
 	return nil
 }
 
+// ValidateGoModule validates Go module path format
+func ValidateGoModule(value string) error {
+	if value == "" {
+		return &ValidationError{
+			Field:   "module",
+			Value:   value,
+			Message: "module is required for Go templates",
+			Help:    "Provide a Go module path using -m or --module (e.g., github.com/example/my-service)",
+		}
+	}
+	if !GoModulePattern.MatchString(value) {
+		return &ValidationError{
+			Field:   "module",
+			Value:   value,
+			Message: fmt.Sprintf("invalid module path '%s'", value),
+			Help:    "Module path must be lowercase and follow Go conventions (e.g., github.com/username/project)",
+		}
+	}
+	return nil
+}
+
 // ValidateAll runs all validations and returns a slice of errors
 func ValidateAll(artifactID, groupID, version, pkg string, isJavaTemplate bool) []error {
 	var errors []error
@@ -125,6 +151,25 @@ func ValidateAll(artifactID, groupID, version, pkg string, isJavaTemplate bool) 
 	}
 
 	if err := ValidatePackage(pkg); err != nil {
+		errors = append(errors, err)
+	}
+
+	return errors
+}
+
+// ValidateAllGo runs all validations for Go templates and returns a slice of errors
+func ValidateAllGo(artifactID, module, version string) []error {
+	var errors []error
+
+	if err := ValidateArtifactID(artifactID); err != nil {
+		errors = append(errors, err)
+	}
+
+	if err := ValidateGoModule(module); err != nil {
+		errors = append(errors, err)
+	}
+
+	if err := ValidateVersion(version); err != nil {
 		errors = append(errors, err)
 	}
 

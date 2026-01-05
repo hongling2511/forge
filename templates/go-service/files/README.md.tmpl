@@ -1,0 +1,165 @@
+# {{.ProjectName}}
+
+Generated with forge CLI using go-service template v1.0.0
+
+## Features
+
+- **Gin** - High-performance HTTP web framework
+- **Cobra** - CLI framework with subcommand support
+- **Viper** - Configuration management (file, env, flags)
+- **Graceful Shutdown** - Clean shutdown with signal handling
+- **Middleware** - Logger, RequestID, Recovery
+
+## Quick Start
+
+```bash
+# Run the server
+make run
+
+# Build binary
+make build
+
+# Run tests
+make test
+
+# Run all checks
+make all
+```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Health check |
+| GET | `/health/live` | Liveness probe |
+| GET | `/health/ready` | Readiness probe |
+| GET | `/version` | Version info |
+| GET | `/api/v1/ping` | Ping endpoint |
+
+## Configuration
+
+The application supports three configuration sources (in order of precedence):
+
+1. **Command-line flags** (highest priority)
+2. **Environment variables**
+3. **Configuration file** (lowest priority)
+
+### Command-line Flags
+
+```bash
+# Show help
+./bin/{{.ProjectName}} --help
+
+# Run with custom port
+./bin/{{.ProjectName}} --port 9090
+
+# Run in debug mode
+./bin/{{.ProjectName}} --mode debug
+
+# Run with custom config file
+./bin/{{.ProjectName}} --config /path/to/config.yaml
+
+# Show version
+./bin/{{.ProjectName}} version
+```
+
+Available flags:
+- `-c, --config`: Config file path (default: ./configs/config.yaml)
+- `-p, --port`: Server port (default: 8080)
+- `-H, --host`: Server host (default: 0.0.0.0)
+- `--mode`: Gin mode (debug, release, test)
+- `--log-level`: Log level (debug, info, warn, error)
+
+### Environment Variables
+
+All configuration can be set via environment variables with prefix `{{.ProjectName | envPrefix}}_`:
+
+```bash
+export {{.ProjectName | envPrefix}}_SERVER_PORT=9090
+export {{.ProjectName | envPrefix}}_SERVER_HOST=127.0.0.1
+export {{.ProjectName | envPrefix}}_SERVER_MODE=debug
+export {{.ProjectName | envPrefix}}_LOG_LEVEL=debug
+
+./bin/{{.ProjectName}}
+```
+
+### Configuration File
+
+Default configuration file: `configs/config.yaml`
+
+```yaml
+server:
+  port: 8080
+  host: "0.0.0.0"
+  mode: "release"
+  read_timeout: 30
+  write_timeout: 30
+
+log:
+  level: "info"
+  format: "json"
+```
+
+## Project Structure
+
+```
+├── cmd/{{.ProjectName}}/      - Application entry point (Cobra commands)
+├── internal/                  - Private application code
+│   ├── {{.ProjectName}}/      - Main application
+│   │   ├── config/            - Configuration (Viper integration)
+│   │   ├── handler/           - HTTP handlers (Gin)
+│   │   ├── middleware/        - Gin middleware
+│   │   ├── service/           - Business logic
+│   │   └── store/             - Data access
+│   └── pkg/                   - Internal shared packages
+├── pkg/                       - Public packages
+├── configs/                   - Configuration files
+├── scripts/                   - Build scripts
+├── build/                     - CI/Docker files
+├── api/                       - API definitions
+├── docs/                      - Documentation
+└── test/                      - Test data
+```
+
+## Development
+
+### Prerequisites
+
+- Go 1.21+
+- Make
+
+### Building
+
+```bash
+make build
+# Binary will be in bin/{{.ProjectName}}
+```
+
+### Docker
+
+```bash
+docker build -f build/docker/Dockerfile -t {{.ProjectName}} .
+docker run -p 8080:8080 {{.ProjectName}}
+```
+
+## Middleware
+
+The application includes the following middleware:
+
+- **Recovery** - Recover from panics
+- **Logger** - Request logging with timing
+- **RequestID** - Generate/propagate X-Request-ID header
+
+## Graceful Shutdown
+
+The application handles SIGINT and SIGTERM signals for graceful shutdown:
+
+```bash
+# Send interrupt signal
+kill -SIGINT $(pgrep {{.ProjectName}})
+```
+
+The server will:
+1. Stop accepting new connections
+2. Wait for existing requests to complete (up to 10 seconds)
+3. Shutdown cleanly

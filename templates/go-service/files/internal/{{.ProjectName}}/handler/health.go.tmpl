@@ -1,0 +1,73 @@
+package handler
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"{{.ModuleName}}/pkg/version"
+)
+
+// RegisterRoutes registers all HTTP routes
+func RegisterRoutes(r *gin.Engine) {
+	// Health check endpoints
+	r.GET("/health", Health)
+	r.GET("/health/live", HealthLive)
+	r.GET("/health/ready", HealthReady)
+
+	// Version endpoint
+	r.GET("/version", Version)
+
+	// API v1 routes
+	v1 := r.Group("/api/v1")
+	{
+		v1.GET("/ping", Ping)
+	}
+}
+
+// HealthResponse represents health check response
+type HealthResponse struct {
+	Status string `json:"status"`
+}
+
+// Health handles health check requests
+func Health(c *gin.Context) {
+	c.JSON(http.StatusOK, HealthResponse{Status: "ok"})
+}
+
+// HealthLive handles liveness probe
+func HealthLive(c *gin.Context) {
+	c.JSON(http.StatusOK, HealthResponse{Status: "alive"})
+}
+
+// HealthReady handles readiness probe
+func HealthReady(c *gin.Context) {
+	// TODO: Add actual readiness checks (database, cache, etc.)
+	c.JSON(http.StatusOK, HealthResponse{Status: "ready"})
+}
+
+// VersionResponse represents version response
+type VersionResponse struct {
+	Version   string `json:"version"`
+	GitCommit string `json:"git_commit"`
+	BuildTime string `json:"build_time"`
+}
+
+// Version handles version requests
+func Version(c *gin.Context) {
+	c.JSON(http.StatusOK, VersionResponse{
+		Version:   version.Version,
+		GitCommit: version.GitCommit,
+		BuildTime: version.BuildTime,
+	})
+}
+
+// PingResponse represents ping response
+type PingResponse struct {
+	Message string `json:"message"`
+}
+
+// Ping handles ping requests
+func Ping(c *gin.Context) {
+	c.JSON(http.StatusOK, PingResponse{Message: "pong"})
+}

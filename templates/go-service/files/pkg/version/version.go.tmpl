@@ -1,0 +1,15 @@
+package version
+
+var (
+	// Version is the current version (set by ldflags)
+	Version = "{{.Version}}"
+	// GitCommit is the git commit hash (set by ldflags)
+	GitCommit = "unknown"
+	// BuildTime is the build timestamp (set by ldflags)
+	BuildTime = "unknown"
+)
+
+// Info returns version information
+func Info() string {
+	return Version + " (" + GitCommit + ") built " + BuildTime
+}

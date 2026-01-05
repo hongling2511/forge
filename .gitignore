@@ -2,6 +2,7 @@
 target/
 *.jar
 *.class
+/forge
 
 # IDE
 .idea/

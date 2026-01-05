@@ -85,6 +85,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 
 - Shell completion (bash, zsh, fish)
-- Additional templates (e.g., `kotlin-ddd`, `go-service`)
+- Additional templates (e.g., `kotlin-ddd`)
 - Template versioning and updates
 - Self-update command
+
+## [2.1.0] - 2026-01-05
+
+### Added
+
+- **Go Service Template** (`go-service`)
+  - Clean architecture with `cmd/`, `internal/`, `pkg/` structure
+  - **Gin** - High-performance HTTP web framework
+  - **Cobra** - CLI framework with subcommand support
+  - **Viper** - Configuration management (file, env, flags)
+  - Graceful shutdown with signal handling
+  - Middleware: Logger, RequestID, Recovery
+  - Health check endpoints: `/health`, `/health/live`, `/health/ready`
+  - Version endpoint: `/version`
+  - API routes: `/api/v1/ping`
+  - Docker support with multi-stage build
+  - Makefile for build automation
+
+- **CLI Enhancements**
+  - `-m, --module` flag for Go module path
+  - Template-specific validation (Go module vs Maven groupId)
+  - Template-specific default versions (0.1.0 for Go, 1.0.0-SNAPSHOT for Java)
+
+- **Go Generator**
+  - `GoExecutor` implementing `Executor` interface
+  - Template function helpers: `envPrefix`, `snakeCase`, `camelCase`, etc.
+  - Go toolchain validation
+
+- **Interactive Mode Updates**
+  - Go template selection in wizard
+  - Module path prompt with validation
+  - Go-specific confirmation summary
+
+### Technical Details
+
+- **Go Version**: 1.21+
+- **Dependencies**: gin-gonic/gin v1.9.1, spf13/cobra v1.8.0, spf13/viper v1.18.2
+- **Generated Project**: Compiles and runs out of the box

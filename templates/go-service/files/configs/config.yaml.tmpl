@@ -1,0 +1,21 @@
+# {{.ProjectName}} configuration file
+# This file can be overridden by environment variables with prefix {{.ProjectName | envPrefix}}_
+# Example: {{.ProjectName | envPrefix}}_SERVER_PORT=9090
+
+server:
+  # Server port
+  port: 8080
+  # Server host
+  host: "0.0.0.0"
+  # Gin mode: debug, release, test
+  mode: "release"
+  # Read timeout in seconds
+  read_timeout: 30
+  # Write timeout in seconds
+  write_timeout: 30
+
+log:
+  # Log level: debug, info, warn, error
+  level: "info"
+  # Log format: json, text
+  format: "json"
