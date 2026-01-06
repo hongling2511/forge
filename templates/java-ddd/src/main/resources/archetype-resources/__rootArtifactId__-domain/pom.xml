@@ -17,7 +17,11 @@
     <description>Domain layer - entities, value objects, domain services</description>
 
     <dependencies>
-        <!-- Domain layer has no internal dependencies -->
+        <!-- JPA API for entity annotations (implementation provided by infrastructure) -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
