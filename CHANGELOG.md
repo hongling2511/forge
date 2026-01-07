@@ -89,6 +89,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template versioning and updates
 - Self-update command
 
+## [2.2.0] - 2026-01-07
+
+### Added
+
+- **JWT Authentication** (`java-ddd` template v1.1.0)
+  - Complete JWT authentication system following DDD architecture
+  - User registration and login with JWT token issuance
+  - Access token (15min) and refresh token (7 days) rotation
+  - Role-based access control (USER, ADMIN roles)
+  - Protected endpoints with Bearer token authentication
+
+- **Domain Layer**
+  - `User` entity with roles, password hash, and account status
+  - `RefreshToken` entity with expiration and revocation
+  - `Role` enum (USER, ADMIN)
+  - Repository interfaces (UserRepository, RefreshTokenRepository)
+
+- **Application Layer**
+  - `AuthenticationService` for login/logout flows
+  - `TokenService` for JWT token management
+  - `UserRegistrationService` for new user registration
+  - `CurrentUserService` for authenticated user context
+  - `PasswordService` for BCrypt password hashing
+
+- **Infrastructure Layer**
+  - `JwtTokenProvider` using jjwt 0.12.x
+  - `JwtAuthenticationFilter` for request authentication
+  - `SecurityConfig` with Spring Security 6.x
+  - JPA repositories for User and RefreshToken
+
+- **Interface Layer (REST API)**
+  - `POST /api/auth/register` - User registration
+  - `POST /api/auth/login` - User login
+  - `POST /api/auth/refresh` - Token refresh
+  - `POST /api/auth/logout` - User logout
+  - `GET /api/users/me` - Current user profile
+  - `GET /api/admin/users` - List users (ADMIN only)
+  - Request/Response DTOs with Jakarta validation
+  - `GlobalExceptionHandler` for consistent error responses
+
+### Technical Details
+
+- **Spring Security**: 6.x with stateless session management
+- **JWT Library**: io.jsonwebtoken (jjwt) 0.12.x
+- **Password Hashing**: BCrypt with strength validation
+- **Database**: H2 (development), JPA for production databases
+
 ## [2.1.0] - 2026-01-05
 
 ### Added
