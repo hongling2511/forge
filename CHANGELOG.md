@@ -89,6 +89,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template versioning and updates
 - Self-update command
 
+## [2.3.0] - 2026-01-07
+
+### Added
+
+- **Unified API Response** (`java-ddd` template v1.2.0)
+  - `ApiResponse<T>` wrapper for consistent API response format
+  - `TraceIdContext` for request trace ID management via SLF4J MDC
+  - `TraceIdFilter` for automatic trace ID generation and propagation
+  - `ErrorCode` enum with standardized error code ranges
+  - `ResponseWrapper` for automatic response wrapping via ResponseBodyAdvice
+
+- **TraceId Mechanism**
+  - Automatic trace ID generation (32-char UUID without hyphens)
+  - Trace ID propagation via `X-Trace-Id` header
+  - MDC integration for log correlation
+  - Logging pattern includes trace ID: `[%X{traceId}]`
+
+- **Error Code Standardization**
+  - Authentication errors: 1000-1999
+  - Authorization errors: 2000-2999
+  - Validation errors: 3000-3999
+  - Business errors: 4000-4999
+  - System errors: 5000-5999
+
+### Changed
+
+- Refactored `GlobalExceptionHandler` to return `ApiResponse` format
+- Removed obsolete `ErrorResponse` and `MessageResponse` DTOs
+- Centralized exception handling (removed duplicate handlers from controllers)
+
+### Response Format
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": { ... },
+  "traceId": "a1b2c3d4e5f6..."
+}
+```
+
 ## [2.2.0] - 2026-01-07
 
 ### Added
