@@ -102,11 +102,17 @@ public class AuthController {
      * @return success message
      */
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@Valid @RequestBody LogoutRequest request) {
+    public ResponseEntity<LogoutResponse> logout(@Valid @RequestBody LogoutRequest request) {
         logger.info("Logout request received");
 
         authenticationService.logout(request.refreshToken());
 
-        return ResponseEntity.ok("Successfully logged out");
+        return ResponseEntity.ok(new LogoutResponse("Successfully logged out"));
+    }
+
+    /**
+     * Response DTO for logout operation.
+     */
+    public record LogoutResponse(String message) {
     }
 }

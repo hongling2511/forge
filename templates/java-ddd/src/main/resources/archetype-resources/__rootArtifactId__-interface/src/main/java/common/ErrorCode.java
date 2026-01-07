@@ -40,6 +40,7 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS(4002, "Email is already registered"),
     USERNAME_ALREADY_EXISTS(4003, "Username is already taken"),
     WEAK_PASSWORD(4004, "Password does not meet requirements"),
+    CONFLICT(4005, "Operation conflicts with current state"),
 
     // System errors (5000-5999)
     INTERNAL_ERROR(5000, "Internal server error"),

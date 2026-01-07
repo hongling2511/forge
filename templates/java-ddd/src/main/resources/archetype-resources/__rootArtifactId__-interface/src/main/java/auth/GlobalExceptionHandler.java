@@ -203,6 +203,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles illegal state exceptions (invalid operation state).
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(
+            IllegalStateException ex,
+            HttpServletRequest request) {
+
+        logger.warn("Illegal state exception for request: {} - {}", request.getRequestURI(), ex.getMessage());
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.CONFLICT.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
      * Handles user not found exception.
      */
     @ExceptionHandler(UserController.UserNotFoundException.class)

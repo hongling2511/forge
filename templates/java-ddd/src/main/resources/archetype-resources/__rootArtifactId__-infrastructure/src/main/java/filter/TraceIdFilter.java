@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Filter that generates or propagates trace ID for each request.
@@ -25,6 +26,12 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TraceIdFilter extends OncePerRequestFilter {
 
+    /** Maximum allowed length for trace ID to prevent DoS attacks */
+    private static final int MAX_TRACE_ID_LENGTH = 64;
+
+    /** Pattern for valid trace ID characters (alphanumeric and hyphens only) */
+    private static final Pattern VALID_TRACE_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9-]+${symbol_dollar}");
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -32,7 +39,9 @@ public class TraceIdFilter extends OncePerRequestFilter {
         try {
             // Get trace ID from header or generate new one
             String traceId = request.getHeader(TraceIdContext.TRACE_ID_HEADER);
-            if (!StringUtils.hasText(traceId)) {
+
+            // Validate trace ID to prevent log injection attacks
+            if (!isValidTraceId(traceId)) {
                 traceId = UUID.randomUUID().toString().replace("-", "");
             }
 
@@ -47,5 +56,21 @@ public class TraceIdFilter extends OncePerRequestFilter {
             // Clean up MDC
             TraceIdContext.clear();
         }
+    }
+
+    /**
+     * Validates the trace ID to prevent log injection and DoS attacks.
+     *
+     * @param traceId the trace ID to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidTraceId(String traceId) {
+        if (!StringUtils.hasText(traceId)) {
+            return false;
+        }
+        if (traceId.length() > MAX_TRACE_ID_LENGTH) {
+            return false;
+        }
+        return VALID_TRACE_ID_PATTERN.matcher(traceId).matches();
     }
 }

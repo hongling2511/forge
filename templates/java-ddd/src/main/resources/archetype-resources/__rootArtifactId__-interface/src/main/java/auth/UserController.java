@@ -95,7 +95,7 @@ public class UserController {
      * @return success message
      */
     @PutMapping("/me/password")
-    public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<PasswordChangeResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         logger.debug("Change password request");
 
         User user = currentUserService.getCurrentUser()
@@ -117,7 +117,13 @@ public class UserController {
         user.updatePassword(newPasswordHash);
         userRepository.save(user);
 
-        return ResponseEntity.ok("Password changed successfully");
+        return ResponseEntity.ok(new PasswordChangeResponse("Password changed successfully"));
+    }
+
+    /**
+     * Response DTO for password change operation.
+     */
+    public record PasswordChangeResponse(String message) {
     }
 
     /**
