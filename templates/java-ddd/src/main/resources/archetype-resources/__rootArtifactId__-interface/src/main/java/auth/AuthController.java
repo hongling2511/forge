@@ -102,101 +102,11 @@ public class AuthController {
      * @return success message
      */
     @PostMapping("/logout")
-    public ResponseEntity<MessageResponse> logout(@Valid @RequestBody LogoutRequest request) {
+    public ResponseEntity<String> logout(@Valid @RequestBody LogoutRequest request) {
         logger.info("Logout request received");
 
         authenticationService.logout(request.refreshToken());
 
-        return ResponseEntity.ok(MessageResponse.of("Successfully logged out"));
-    }
-
-    /**
-     * Handles email already exists exception.
-     */
-    @ExceptionHandler(UserRegistrationService.EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(
-            UserRegistrationService.EmailAlreadyExistsException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.CONFLICT.value(),
-                "Conflict",
-                "Email is already registered",
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-    }
-
-    /**
-     * Handles username already exists exception.
-     */
-    @ExceptionHandler(UserRegistrationService.UsernameAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUsernameAlreadyExists(
-            UserRegistrationService.UsernameAlreadyExistsException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.CONFLICT.value(),
-                "Conflict",
-                "Username is already taken",
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-    }
-
-    /**
-     * Handles weak password exception.
-     */
-    @ExceptionHandler(UserRegistrationService.WeakPasswordException.class)
-    public ResponseEntity<ErrorResponse> handleWeakPassword(
-            UserRegistrationService.WeakPasswordException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.badRequest().body(response);
-    }
-
-    /**
-     * Handles invalid token exception.
-     */
-    @ExceptionHandler(TokenService.InvalidTokenException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidToken(
-            TokenService.InvalidTokenException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
-
-    /**
-     * Handles account disabled exception.
-     */
-    @ExceptionHandler(AuthenticationService.AccountDisabledException.class)
-    public ResponseEntity<ErrorResponse> handleAccountDisabled(
-            AuthenticationService.AccountDisabledException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.FORBIDDEN.value(),
-                "Forbidden",
-                "Account is disabled",
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        return ResponseEntity.ok("Successfully logged out");
     }
 }
