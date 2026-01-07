@@ -10,6 +10,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-05
 - Java 17+ (generated projects - java-ddd)
 - Maven 3.6+ (archetype and build tool - java-ddd)
 - Spring Boot 3.x (generated project runtime - java-ddd)
+- Java 17+ + Spring Boot 3.2.x, Spring Security 6.x, jjwt (io.jsonwebtoken) 0.12.x, Spring Data JPA (004-jwt-auth)
+- Relational database via JPA (H2 for development, configurable for production) (004-jwt-auth)
 
 ## Project Structure
 
@@ -63,10 +65,10 @@ forge version                            # Show version
 - Java (generated): Follow standard Maven conventions
 
 ## Recent Changes
+- 004-jwt-auth: Added Java 17+ + Spring Boot 3.2.x, Spring Security 6.x, jjwt (io.jsonwebtoken) 0.12.x, Spring Data JPA
 - 003-go-service-template: Added go-service template with clean architecture, Go generator, and interactive wizard support
 
 - 002-go-cli: Rewrote CLI in Go with Cobra framework, added interactive mode
-- 001-maven-ddd-archetype: Java DDD multi-module template with Spring Boot 3.x
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

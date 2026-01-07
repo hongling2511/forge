@@ -105,7 +105,7 @@ Show version information.
 | Template | Description | Stack |
 |----------|-------------|-------|
 | `go-service` | Go microservice with clean architecture | Go 1.21+, Gin, Cobra, Viper |
-| `java-ddd` | Java DDD multi-module project | Java 17+, Spring Boot 3.x, Maven |
+| `java-ddd` | Java DDD multi-module project with JWT auth | Java 17+, Spring Boot 3.x, Spring Security 6.x |
 
 ## Generated Project Structure
 
@@ -150,6 +150,43 @@ bootstrap → interface → application → domain
               ↓              ↓
           infrastructure ────┘
 ```
+
+### JWT Authentication (java-ddd)
+
+The `java-ddd` template includes a complete JWT authentication system:
+
+**API Endpoints:**
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/auth/register` | Register new user | Public |
+| POST | `/api/auth/login` | Login and get tokens | Public |
+| POST | `/api/auth/refresh` | Refresh access token | Public |
+| POST | `/api/auth/logout` | Logout and revoke token | Required |
+| GET | `/api/users/me` | Get current user profile | Required |
+| GET | `/api/admin/users` | List all users | ADMIN |
+
+**Quick Test:**
+
+```bash
+# Register a user
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"Test@1234"}'
+
+# Login
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test@1234"}'
+
+# Access protected endpoint (use token from login response)
+curl http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer <access_token>"
+```
+
+**Token Configuration** (in `application.yml`):
+- Access token: 15 minutes
+- Refresh token: 7 days
 
 ## Requirements
 

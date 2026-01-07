@@ -25,6 +25,9 @@
         <!-- Spring Boot Version -->
         <spring-boot.version>3.2.1</spring-boot.version>
 
+        <!-- JWT Version -->
+        <jjwt.version>0.12.3</jjwt.version>
+
         <!-- Forge Version Tracking (T017) -->
         <forge.archetype.version>${forgeArchetypeVersion}</forge.archetype.version>
         <forge.template.version>${forgeTemplateVersion}</forge.template.version>
@@ -69,6 +72,25 @@
                 <groupId>${groupId}</groupId>
                 <artifactId>${artifactId}-interface</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <!-- JWT Libraries -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
