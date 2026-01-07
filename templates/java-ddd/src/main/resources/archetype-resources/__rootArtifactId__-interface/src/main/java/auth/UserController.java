@@ -95,7 +95,7 @@ public class UserController {
      * @return success message
      */
     @PutMapping("/me/password")
-    public ResponseEntity<MessageResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<PasswordChangeResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         logger.debug("Change password request");
 
         User user = currentUserService.getCurrentUser()
@@ -117,61 +117,13 @@ public class UserController {
         user.updatePassword(newPasswordHash);
         userRepository.save(user);
 
-        return ResponseEntity.ok(MessageResponse.of("Password changed successfully"));
+        return ResponseEntity.ok(new PasswordChangeResponse("Password changed successfully"));
     }
 
     /**
-     * Handles user not found exception.
+     * Response DTO for password change operation.
      */
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(
-            UserNotFoundException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.NOT_FOUND.value(),
-                "Not Found",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
-    /**
-     * Handles invalid password exception.
-     */
-    @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidPassword(
-            InvalidPasswordException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.badRequest().body(response);
-    }
-
-    /**
-     * Handles weak password exception.
-     */
-    @ExceptionHandler(WeakPasswordException.class)
-    public ResponseEntity<ErrorResponse> handleWeakPassword(
-            WeakPasswordException ex,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.badRequest().body(response);
+    public record PasswordChangeResponse(String message) {
     }
 
     /**

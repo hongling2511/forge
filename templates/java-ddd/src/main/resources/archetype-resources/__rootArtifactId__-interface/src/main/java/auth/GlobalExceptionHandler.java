@@ -3,6 +3,8 @@
 #set( $symbol_escape = '\' )
 package ${package}.auth;
 
+import ${package}.common.ApiResponse;
+import ${package}.common.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +18,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Global exception handler for REST API endpoints.
- * Provides consistent error responses across all controllers.
+ * Returns consistent ApiResponse format for all errors.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -32,24 +34,18 @@ public class GlobalExceptionHandler {
      * Handles validation errors from @Valid annotations.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
             MethodArgumentNotValidException ex,
             HttpServletRequest request) {
 
-        List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> ErrorResponse.FieldError.of(
-                        error.getField(),
-                        error.getDefaultMessage(),
-                        error.getRejectedValue()))
-                .collect(Collectors.toList());
+        Map<String, String> fieldErrors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.put(error.getField(), error.getDefaultMessage());
+        }
 
-        ErrorResponse response = ErrorResponse.withFieldErrors(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation Failed",
-                "Request validation failed",
-                request.getRequestURI(),
+        ApiResponse<Map<String, String>> response = ApiResponse.error(
+                ErrorCode.VALIDATION_ERROR.getCode(),
+                ErrorCode.VALIDATION_ERROR.getMessage(),
                 fieldErrors
         );
 
@@ -60,17 +56,15 @@ public class GlobalExceptionHandler {
      * Handles bad credentials during authentication.
      */
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException(
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(
             BadCredentialsException ex,
             HttpServletRequest request) {
 
         logger.warn("Bad credentials attempt for request: {}", request.getRequestURI());
 
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized",
-                "Invalid email or password",
-                request.getRequestURI()
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.INVALID_CREDENTIALS.getCode(),
+                ErrorCode.INVALID_CREDENTIALS.getMessage()
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -80,17 +74,15 @@ public class GlobalExceptionHandler {
      * Handles authentication failures.
      */
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
             AuthenticationException ex,
             HttpServletRequest request) {
 
         logger.warn("Authentication failed for request: {} - {}", request.getRequestURI(), ex.getMessage());
 
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized",
-                "Authentication failed",
-                request.getRequestURI()
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.UNAUTHORIZED.getCode(),
+                ErrorCode.UNAUTHORIZED.getMessage()
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -100,17 +92,95 @@ public class GlobalExceptionHandler {
      * Handles access denied (insufficient permissions).
      */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(
             AccessDeniedException ex,
             HttpServletRequest request) {
 
         logger.warn("Access denied for request: {}", request.getRequestURI());
 
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.FORBIDDEN.value(),
-                "Forbidden",
-                "You don't have permission to access this resource",
-                request.getRequestURI()
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.FORBIDDEN.getCode(),
+                ErrorCode.FORBIDDEN.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    /**
+     * Handles email already exists exception.
+     */
+    @ExceptionHandler(UserRegistrationService.EmailAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEmailAlreadyExists(
+            UserRegistrationService.EmailAlreadyExistsException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.EMAIL_ALREADY_EXISTS.getCode(),
+                ErrorCode.EMAIL_ALREADY_EXISTS.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * Handles username already exists exception.
+     */
+    @ExceptionHandler(UserRegistrationService.UsernameAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUsernameAlreadyExists(
+            UserRegistrationService.UsernameAlreadyExistsException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.USERNAME_ALREADY_EXISTS.getCode(),
+                ErrorCode.USERNAME_ALREADY_EXISTS.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * Handles weak password exception.
+     */
+    @ExceptionHandler(UserRegistrationService.WeakPasswordException.class)
+    public ResponseEntity<ApiResponse<Void>> handleWeakPassword(
+            UserRegistrationService.WeakPasswordException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.WEAK_PASSWORD.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Handles invalid token exception.
+     */
+    @ExceptionHandler(TokenService.InvalidTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidToken(
+            TokenService.InvalidTokenException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.TOKEN_INVALID.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
+     * Handles account disabled exception.
+     */
+    @ExceptionHandler(AuthenticationService.AccountDisabledException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccountDisabled(
+            AuthenticationService.AccountDisabledException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.ACCOUNT_DISABLED.getCode(),
+                ErrorCode.ACCOUNT_DISABLED.getMessage()
         );
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
@@ -120,15 +190,13 @@ public class GlobalExceptionHandler {
      * Handles illegal argument exceptions (business validation errors).
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
             IllegalArgumentException ex,
             HttpServletRequest request) {
 
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI()
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.INVALID_PARAMETER.getCode(),
+                ex.getMessage()
         );
 
         return ResponseEntity.badRequest().body(response);
@@ -138,35 +206,81 @@ public class GlobalExceptionHandler {
      * Handles illegal state exceptions (invalid operation state).
      */
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalStateException(
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(
             IllegalStateException ex,
             HttpServletRequest request) {
 
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.CONFLICT.value(),
-                "Conflict",
-                ex.getMessage(),
-                request.getRequestURI()
+        logger.warn("Illegal state exception for request: {} - {}", request.getRequestURI(), ex.getMessage());
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.CONFLICT.getCode(),
+                ex.getMessage()
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     /**
+     * Handles user not found exception.
+     */
+    @ExceptionHandler(UserController.UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFound(
+            UserController.UserNotFoundException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.USER_NOT_FOUND.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    /**
+     * Handles invalid password exception.
+     */
+    @ExceptionHandler(UserController.InvalidPasswordException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidPassword(
+            UserController.InvalidPasswordException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.INVALID_CREDENTIALS.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Handles weak password exception from UserController.
+     */
+    @ExceptionHandler(UserController.WeakPasswordException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserControllerWeakPassword(
+            UserController.WeakPasswordException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.WEAK_PASSWORD.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
      * Handles all other uncaught exceptions.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(
             Exception ex,
             HttpServletRequest request) {
 
         logger.error("Unexpected error for request: {}", request.getRequestURI(), ex);
 
-        ErrorResponse response = ErrorResponse.of(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                "An unexpected error occurred",
-                request.getRequestURI()
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.INTERNAL_ERROR.getCode(),
+                ErrorCode.INTERNAL_ERROR.getMessage()
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
