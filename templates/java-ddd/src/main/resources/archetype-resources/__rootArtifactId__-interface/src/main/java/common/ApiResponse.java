@@ -3,6 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.common;
 
+import ${package}.common.TraceIdContext;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
