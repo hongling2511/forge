@@ -1,0 +1,27 @@
+#set( $dollar = '$' )
+# =============================================================================
+# Production Environment Configuration
+# Database: Configured via environment variables (DB_URL, DB_USER, DB_PASSWORD, DB_DRIVER)
+# =============================================================================
+
+spring:
+  # Disable H2 console in production
+  h2:
+    console:
+      enabled: false
+
+  # No SQL logging in production
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+# Production logging levels
+logging:
+  level:
+    root: WARN
+    ${package}: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.flywaydb: INFO
