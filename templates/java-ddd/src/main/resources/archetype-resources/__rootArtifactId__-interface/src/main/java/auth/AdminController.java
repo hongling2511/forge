@@ -3,10 +3,9 @@
 #set( $symbol_escape = '\' )
 package ${package}.auth;
 
+import ${package}.common.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -128,7 +127,7 @@ public class AdminController {
      * @return success message
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<MessageResponse> deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
         logger.info("Admin deleting user: {}", id);
 
         if (!userRepository.findById(id).isPresent()) {
@@ -139,7 +138,7 @@ public class AdminController {
         tokenService.revokeAllUserTokens(id);
         userRepository.deleteById(id);
 
-        return ResponseEntity.ok(MessageResponse.of("User deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
     }
 
     /**
