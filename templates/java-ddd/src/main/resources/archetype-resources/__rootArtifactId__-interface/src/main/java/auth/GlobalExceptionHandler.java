@@ -203,6 +203,54 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles user not found exception.
+     */
+    @ExceptionHandler(UserController.UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFound(
+            UserController.UserNotFoundException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.USER_NOT_FOUND.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    /**
+     * Handles invalid password exception.
+     */
+    @ExceptionHandler(UserController.InvalidPasswordException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidPassword(
+            UserController.InvalidPasswordException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.INVALID_CREDENTIALS.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Handles weak password exception from UserController.
+     */
+    @ExceptionHandler(UserController.WeakPasswordException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserControllerWeakPassword(
+            UserController.WeakPasswordException ex,
+            HttpServletRequest request) {
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.WEAK_PASSWORD.getCode(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
      * Handles all other uncaught exceptions.
      */
     @ExceptionHandler(Exception.class)
