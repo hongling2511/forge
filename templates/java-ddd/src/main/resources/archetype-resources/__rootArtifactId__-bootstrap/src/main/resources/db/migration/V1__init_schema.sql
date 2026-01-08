@@ -13,8 +13,8 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL UNIQUE,         -- Login username
     email VARCHAR(100) NOT NULL UNIQUE,           -- Email address
     password_hash VARCHAR(255) NOT NULL,          -- BCrypt hashed password
-    first_name VARCHAR(50),                       -- User's first name
-    last_name VARCHAR(50),                        -- User's last name
+    first_name VARCHAR(100),                      -- User's first name
+    last_name VARCHAR(100),                       -- User's last name
     enabled BOOLEAN NOT NULL DEFAULT TRUE,        -- Account status
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -27,7 +27,7 @@ CREATE TABLE users (
 CREATE TABLE refresh_tokens (
     id VARCHAR(36) NOT NULL PRIMARY KEY,          -- UUID primary key
     user_id VARCHAR(36) NOT NULL,                 -- Reference to users.id
-    token_hash VARCHAR(255) NOT NULL UNIQUE,      -- SHA-256 hashed token
+    token VARCHAR(255) NOT NULL UNIQUE,           -- Refresh token value
     expires_at TIMESTAMP NOT NULL,                -- Token expiration time
     revoked BOOLEAN NOT NULL DEFAULT FALSE,       -- Revocation status
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -46,7 +46,6 @@ CREATE TABLE user_roles (
 -- -----------------------------------------------------
 -- Indexes: Performance optimization
 -- -----------------------------------------------------
-CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_enabled ON users(enabled);
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
