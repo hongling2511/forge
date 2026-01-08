@@ -1,0 +1,26 @@
+# Java Backward Compatibility Patterns
+# These rules help maintain consistency in Java template code
+
+id: java-suppress-warnings-deprecation
+language: java
+severity: info
+message: |
+  使用 @SuppressWarnings("deprecation")。确保有计划移除对废弃 API 的依赖。
+  Using @SuppressWarnings("deprecation"). Ensure there's a plan to remove deprecated API usage.
+rule:
+  pattern: '@SuppressWarnings("deprecation")'
+
+---
+
+id: java-instanceof-apiresponse
+language: java
+severity: info
+message: |
+  使用 instanceof 检查 ApiResponse。这是防止重复包装的兼容模式。
+  instanceof check for ApiResponse. This is a compatibility pattern to prevent double-wrapping.
+note: |
+  这是一个合理的模式，用于:
+  - ResponseBodyAdvice 中防止重复包装
+  - 确保统一响应格式的向后兼容性
+rule:
+  pattern: $VAR instanceof ApiResponse
