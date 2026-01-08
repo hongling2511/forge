@@ -1,0 +1,74 @@
+# Go Backward Compatibility Anti-Patterns
+# Detects patterns that may indicate compatibility issues or code smells
+
+id: go-discarded-assignment
+language: go
+severity: warning
+message: |
+  变量值被赋值后立即丢弃。考虑使用该值或删除此赋值。
+  Variable value is assigned and immediately discarded. Consider using the value or removing the assignment.
+note: |
+  如果确实不需要该值，考虑:
+  1. 直接调用函数而不捕获返回值
+  2. 添加注释说明为什么丢弃该值
+  3. 使用该值进行验证或日志记录
+rule:
+  pattern: _ = $VAR
+
+---
+
+id: go-hardcoded-version-snapshot
+language: go
+severity: info
+message: |
+  检测到硬编码的 SNAPSHOT 版本字符串。考虑使用变量或配置管理版本。
+  Hardcoded SNAPSHOT version string detected. Consider using variables or configuration.
+rule:
+  pattern: '"1.0.0-SNAPSHOT"'
+
+---
+
+id: go-hardcoded-template-version
+language: go
+severity: info
+message: |
+  检测到硬编码的模板版本字符串。考虑从配置读取。
+  Hardcoded template version string detected. Consider reading from configuration.
+rule:
+  pattern: '"-DforgeTemplateVersion=1.0.0"'
+
+---
+
+id: go-todo-remove-comment
+language: go
+severity: info
+message: |
+  检测到 TODO 移除注释。这可能是需要清理的向后兼容代码。
+  TODO remove comment detected. This may be backward compatibility code that needs cleanup.
+rule:
+  kind: comment
+  regex: "(?i)(todo|fixme).*(remov|delet)"
+
+---
+
+id: go-deprecated-comment
+language: go
+severity: info
+message: |
+  检测到 deprecated 标记。考虑制定移除计划。
+  Deprecated marker detected. Consider planning for removal.
+rule:
+  kind: comment
+  regex: "(?i)deprecat"
+
+---
+
+id: go-legacy-comment
+language: go
+severity: info
+message: |
+  检测到 legacy/compat 注释。这可能是需要审查的向后兼容代码。
+  Legacy/compat comment detected. This may be backward compatibility code that needs review.
+rule:
+  kind: comment
+  regex: "(?i)(legacy|backward.compat)"

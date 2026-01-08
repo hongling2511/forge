@@ -1,0 +1,52 @@
+# Go Error Handling Rules
+# Prevents common error suppression anti-patterns
+
+id: go-no-ignored-readdir-error
+language: go
+severity: warning
+message: |
+  os.ReadDir 的错误被忽略。I/O 操作可能失败，应该处理错误。
+  Error from os.ReadDir is ignored. I/O operations can fail and errors should be handled.
+note: |
+  修复建议:
+  ```go
+  entries, err := os.ReadDir(dir)
+  if err != nil {
+      return fmt.Errorf("failed to read directory: %w", err)
+  }
+  ```
+rule:
+  pattern: $ENTRIES, _ := os.ReadDir($DIR)
+
+---
+
+id: go-no-ignored-open-error
+language: go
+severity: warning
+message: |
+  os.Open 的错误被忽略。文件操作可能失败，应该处理错误。
+  Error from os.Open is ignored. File operations can fail and errors should be handled.
+rule:
+  pattern: $FILE, _ := os.Open($PATH)
+
+---
+
+id: go-no-ignored-create-error
+language: go
+severity: warning
+message: |
+  os.Create 的错误被忽略。文件创建可能失败，应该处理错误。
+  Error from os.Create is ignored. File creation can fail and errors should be handled.
+rule:
+  pattern: $FILE, _ := os.Create($PATH)
+
+---
+
+id: go-no-ignored-stat-error
+language: go
+severity: warning
+message: |
+  os.Stat 的错误被忽略。文件状态检查可能失败，应该处理错误。
+  Error from os.Stat is ignored. File stat can fail and errors should be handled.
+rule:
+  pattern: $INFO, _ := os.Stat($PATH)

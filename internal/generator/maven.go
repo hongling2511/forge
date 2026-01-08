@@ -127,7 +127,10 @@ func ResolveOutputDir(outputDir, artifactID string) (string, error) {
 	// Check if target directory already exists and is not empty
 	targetDir := filepath.Join(absDir, artifactID)
 	if info, err := os.Stat(targetDir); err == nil && info.IsDir() {
-		entries, _ := os.ReadDir(targetDir)
+		entries, err := os.ReadDir(targetDir)
+		if err != nil {
+			return "", fmt.Errorf("failed to read target directory '%s': %w", targetDir, err)
+		}
 		if len(entries) > 0 {
 			return "", fmt.Errorf("target directory '%s' already exists and is not empty", targetDir)
 		}

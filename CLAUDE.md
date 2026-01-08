@@ -12,6 +12,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-05
 - Spring Boot 3.x (generated project runtime - java-ddd)
 - Java 17+ + Spring Boot 3.2.x, Spring Security 6.x, jjwt (io.jsonwebtoken) 0.12.x, Spring Data JPA (004-jwt-auth)
 - Relational database via JPA (H2 for development, configurable for production) (004-jwt-auth)
+- Logback (structured logging with TraceId), Flyway 9.x (database migration), MySQL 8.0+/PostgreSQL 12+ (004-logging-database)
 
 ## Project Structure
 
@@ -65,6 +66,7 @@ forge version                            # Show version
 - Java (generated): Follow standard Maven conventions
 
 ## Recent Changes
+- 004-logging-database: Added Logback with TraceId, Flyway database migration, environment-specific configs (dev/qa/prod)
 - 004-jwt-auth: Added Java 17+ + Spring Boot 3.2.x, Spring Security 6.x, jjwt (io.jsonwebtoken) 0.12.x, Spring Data JPA
 - 003-go-service-template: Added go-service template with clean architecture, Go generator, and interactive wizard support
 

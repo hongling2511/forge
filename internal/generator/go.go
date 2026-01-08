@@ -275,14 +275,10 @@ func (e *GoExecutor) processFile(srcPath, dstPath string, data *TemplateData) er
 // CheckGo verifies Go is available and returns version info
 func CheckGo() error {
 	cmd := exec.Command("go", "version")
-	output, err := cmd.Output()
+	_, err := cmd.Output()
 	if err != nil {
 		return &GoNotFoundError{}
 	}
-
-	// Optionally parse version from output to check minimum version
-	_ = output // Version string like "go version go1.21.0 darwin/arm64"
-
 	return nil
 }
 
