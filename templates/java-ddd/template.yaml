@@ -2,8 +2,8 @@
 # Java DDD Multi-Module Spring Boot Archetype
 
 name: java-ddd
-version: 1.2.0
-description: "Java DDD 多模块工程 (Spring Boot 3.x) - 含 JWT 认证和统一响应"
+version: 1.3.0
+description: "Java DDD 多模块工程 (Spring Boot 3.x) - 含 JWT 认证、统一响应、日志和数据库迁移"
 
 # Template type determines which parameters are required
 type: maven-archetype
@@ -52,3 +52,23 @@ stack:
   framework: spring-boot
   frameworkVersion: "3.2.x"
   buildTool: maven
+
+# Features
+features:
+  authentication:
+    - JWT-based authentication (jjwt 0.12.x)
+    - Refresh token support
+    - BCrypt password hashing
+  response:
+    - Unified API response format (code, message, data)
+    - Global exception handling
+    - TraceId integration
+  logging:
+    - Logback with TraceId support
+    - Environment-specific configurations (dev/qa/prod)
+    - Rolling file appender with size/time limits
+    - Async logging for performance
+  database:
+    - Flyway migration (MySQL 8.0+, PostgreSQL 12+, H2)
+    - Environment-based configuration
+    - Connection pooling with HikariCP
